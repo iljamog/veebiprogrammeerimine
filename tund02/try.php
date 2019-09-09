@@ -37,5 +37,7 @@ $partOfDay = "varajane hommik";
 	?>
 	  
   <img src="funycat.jpg" alt="kassipilt" />
+  
+  <hr>
 </body>
 </html> 
