@@ -6,6 +6,8 @@ $fullTimeNow = date("d.m.Y H:i:s");
 $hourNow = date ("H");
 $partOfDay = "hägune aeg";
 
+$weekDaysET = ["esmaspäev","teisipäev","kolmapäev","neljapäev","reede","laupäev","pühapäev"];
+
 if($hourNow == 1 && $hourNow <= 5){
 	$partOfDay = "peaksid sa magama";
 }
