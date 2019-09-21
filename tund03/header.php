@@ -5,7 +5,7 @@
   
   <title>
 	<?php
-	echo $userName;
+	echo $title;
 	?>
-  häkib </title>
+  </title>
 </head>
