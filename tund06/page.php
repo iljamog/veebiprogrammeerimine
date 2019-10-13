@@ -1,5 +1,16 @@
 <?php
-$userName = "Ilja Mogilnõi";
+  require("../../../functions_main.php");
+  require("functions_user.php");
+  require("../../../config_vp2019.php");
+  $database = "if19_ilja_mo_1";
+  
+  $userName = "Sisselogimata kasutaja";
+  
+  $notice = "";
+  $email = "";
+  $emailError = "";
+  $passwordError = "";
+
 $title= "I.Mogilnõi koolitöö leht";
 date_default_timezone_set("Europe/Helsinki");
 
@@ -9,9 +20,6 @@ $weekDaysET = ["esmaspäev","teisipäev","kolmapäev","neljapäev","reede","laup
 $monthsET = ["jaanuar","veebruar","märts","aprill","mai","juuni","juuli","august","september","oktoober","november","detsemeber"];
 $monthNow = date("n");
 $dayNow = date("N");
-
-
-
 
 $hourNow = date ("H");
 $partOfDay = "hägune aeg";
@@ -37,9 +45,9 @@ if($hourNow >= 17){
         $today = new DateTime ("now");
         $fromSemesterStart = $semesterStart -> diff($today);
         //var_dump($fromSemesterStart);
-$semesterInfoHTML = "<p>Siin peaks olema info semestri kulguse kohta</p>";
-$elapsedValue = $fromSemesterStart -> format ("%r%a");
-$durationValue = $semesterDuration -> format ("%r%a");
+		$semesterInfoHTML = "<p>Siin peaks olema info semestri kulguse kohta</p>";
+		$elapsedValue = $fromSemesterStart -> format ("%r%a");
+		$durationValue = $semesterDuration -> format ("%r%a");
 if ($elapsedValue > 0){
         $semesterInfoHTML = " <p>Semester on täies hoos: ";
         $semesterInfoHTML .= '<meter min="0" max="' .$durationValue. '" ';
@@ -61,8 +69,8 @@ if ($today < $semesterStart){
 
         // foto lisamine lehele
         
-$photoDir = "../photos/";
-$picFileTypes = ["image/jpeg", "image/png"];
+		$photoDir = "../photos/";
+		$picFileTypes = ["image/jpeg", "image/png"];
         $allPhotos = [];
         $dirContent = array_slice(scandir($photoDir),2);
         //var_dump($dirContent);
@@ -79,24 +87,58 @@ $picFileTypes = ["image/jpeg", "image/png"];
         //echo $allPhotos[$picNum];
         $photoFile = $photoDir .$allPhotos[$picNum];
         $randomImgHTML = '<img src="' .$photoFile .'" alt="TLÜ Terra Õppehoone">';
+		
+	  if(isset($_POST["login"])){
+		if (isset($_POST["email"]) and !empty($_POST["email"])){
+		  $email = test_input($_POST["email"]);
+		} else {
+		  $emailError = "Palun sisesta kasutajatunnusena e-posti aadress!";
+		}
+	  
+		if (!isset($_POST["password"]) or strlen($_POST["password"]) < 8){
+		  $passwordError = "Palun sisesta parool, vähemalt 8 märki!";
+		}
+	  
+		if(empty($emailError) and empty($passwordError)){
+		   $notice = signIn($email, $_POST["password"]);
+		} else {
+			$notice = "Ei saa sisse logida!";
+		}
+	  }
         
         // lisame lehepäise
-        require("header.php");
-		require("functions_user.php")
+		
+		
 ?>
-
-<center>
+<!DOCTYPE html>
+<html lang="et">
+  <head>
+    <meta charset="utf-8">
+	<title>Katseline veebileht</title>
+  </head>
 <body>
+<center>
 <?php
-        echo"<h1>" .$userName ." koolitöö leht</h1>";
+        echo"<h1>Koolitöö leht</h1>";
         ?>
         
 <p>See leht on loodud koolitöö raames ja
   ei sisalda tõsiseltvõetavat sisu!</p>
   </center>
   <hr>
+  
+  <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+	  <label>E-mail (kasutajatunnus):</label><br>
+	  <input type="email" name="email" value="<?php echo $email; ?>">&nbsp;<span><?php echo $emailError; ?></span><br>
+	  
+	  <label>Salasõna:</label><br>
+	  <input name="password" type="password">&nbsp;<span><?php echo $passwordError; ?></span><br>
+	  
+	  <input name="login" type="submit" value="Logi sisse">&nbsp;<span><?php echo $notice; ?>
+	</form>
+  <hr>  
         <?php 
-		echo $firstName;
+		
         echo $semesterInfoHTML;
         ?>
         <p> Lehe avamisel on:
