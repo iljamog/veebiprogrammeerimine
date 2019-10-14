@@ -102,7 +102,7 @@
 		 $stmt->close();
 		 $stmt = $conn->prepare("UPDATE vpuserprofiles SET description = ?, bgcolor = ?, txtcolor = ? WHERE userid = ?");
 		 echo $conn->error;
-		 $stmt->bind_param("siii", $mydescription, $mybgcolor, $mytxtcolor, $_SESSION["userID"]);
+		 $stmt->bind_param("sssi", $mydescription, $mybgcolor, $mytxtcolor, $_SESSION["userID"]);
 		 if($stmt->execute()){
 			$notice = "Profiil edukalt uuendatud!";
 			$_SESSION["mybgcolor"] = $mybgcolor;
@@ -132,3 +132,49 @@
 	$conn->close();
 	return $notice;
   }
+    function changePassword(){
+		$notice = null;
+		$conn = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
+		$stmt = $conn->prepare("SELECT id FROM vpuserprofiles WHERE userid=?");
+		echo $conn->error;
+		$stmt->bind_param("i", $_SESSION["userID"]);
+		$stmt->bind_result($idFromDb);
+		$stmt->execute();
+		
+		if($stmt->fetch()){
+		//profiil juba olemas, uuendame
+		//$notice = "Profiil olemas, ei salvestanud midagi!";
+		 $stmt->close();
+		 $stmt = $conn->prepare("UPDATE vpusers SET description = ? WHERE userid = ?");
+		 echo $conn->error;
+		 $stmt->bind_param("sssi", $mydescription, $mybgcolor, $mytxtcolor, $_SESSION["userID"]);
+		 if($stmt->execute()){
+			$notice = "Profiil edukalt uuendatud!";
+			$_SESSION["mybgcolor"] = $mybgcolor;
+            $_SESSION["mytxtcolor"] = $mytxtcolor;
+            $_SESSION["description"] = $mydescription;
+		} 
+		else{
+			$notice = "Profiili salvestamisel tekkis tõrge! " .$stmt->error;
+		}
+		
+		
+	  
+		//valmistame parooli salvestamiseks ette
+		$options = ["cost" => 12, "salt" => substr(sha1(rand()), 0, 22)];
+		$pwdhash = password_hash($password,PASSWORD_BCRYPT, $options );
+		  
+		$stmt->bind_param("sssiss", $name, $surname, $birthDate, $gender, $email, $pwdhash);
+		  
+		if($stmt->execute()){
+			$notice = "Uue kasutaja salvestamine õnnestus!";
+		} else {
+			$notice = "Kasutaja salvestamisel tekkis tehniline viga: " .$stmt->error;
+		}
+		  
+		$stmt->close();
+		$conn->close();
+		return $notice;
+  }
+
+?>

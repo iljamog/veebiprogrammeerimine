@@ -2,6 +2,7 @@
 	require("../../../functions_main.php");
 	require("functions_user.php");
 	require("../../../config_vp2019.php");
+	require("functions_message.php");
 	$database = "if19_ilja_mo_1";
   
   //kui pole sisseloginud
