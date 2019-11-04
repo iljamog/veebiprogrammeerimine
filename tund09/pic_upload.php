@@ -34,7 +34,6 @@ if(isset($_GET["logout"])){
   $fileName = "vp_";
   $picMaxW = 600;
   $picMaxH = 400;
-  $waterMark = "../vp_pics/vp_logo_w100_overlay.png";
   //pic upload algab
 	//$target_dir = "uploads/";
   
@@ -87,7 +86,6 @@ if(isset($_GET["logout"])){
 		$myPic = new Picupload($_FILES["fileToUpload"]["tmp_name"], $imageFileType);
 		//suuruse muutmine
 		$myPic->resizeImage($picMaxW, $picMaxH);
-		$myPic->addWaterMark($waterMark);
 		$myPic->saveImage($pic_upload_dir_W600 .$fileName);
 		unset($myPic);
 		
