@@ -3,6 +3,7 @@
   require("functions_user.php");
   require("../../../config_vp2019.php");
   $database = "if19_ilja_mo_1";
+  require("functions_pic.php");
   
   $userName = "Sisselogimata kasutaja";
   
@@ -78,7 +79,7 @@ if ($today < $semesterStart){
                 $fileInfo = getImagesize($photoDir .$file);
                 //var_dump($fileInfo);
                 if(in_array($fileInfo["mime"], $picFileTypes) == true){
-                        array_push($allPhotos, $file);
+                    array_push($allPhotos, $file);
                 }
         }
         //var_dump($allPhotos)
@@ -86,7 +87,9 @@ if ($today < $semesterStart){
         $picNum = mt_rand(0, ($picCount - 1));
         //echo $allPhotos[$picNum];
         $photoFile = $photoDir .$allPhotos[$picNum];
-        $randomImgHTML = '<img src="' .$photoFile .'" alt="TLÜ Terra Õppehoone">';
+        $randomSchoolImg = '<img src="' .$photoFile .'" alt="TLÜ Terra Õppehoone">';
+		
+		$randomImgHTML = getRandomImage();
 		
 	  if(isset($_POST["login"])){
 		if (isset($_POST["email"]) and !empty($_POST["email"])){
@@ -163,11 +166,13 @@ if($d == "Fri"){
 ?>
 
 <center>
+<center>
 <img src="funycat.jpg" alt="kassipilt" />
 </center>
 <hr>
-<center>
+
 <?php
+echo $randomSchoolImg;
 echo $randomImgHTML;
 ?>
 </center>

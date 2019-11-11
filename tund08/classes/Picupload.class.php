@@ -18,6 +18,66 @@
 			imagedestroy ($this->myTempImage);
 			imagedestroy ($this->myNewImage);
 		}
+		//faili nime moodustaja
+		
+		public function createFileName($fileName){
+		//failinime jaoks ajatempel
+			$timeStamp = microtime(1) * 10000;
+			$fileName .= $timeStamp ."." .$imageFileType;
+			$targetFile = $pic_upload_dir_orig .$fileName;
+			
+			return $fileName;
+			return $targetFile;			
+		}
+		
+		
+		// Kas on üldse pilt
+		private function checkIfImage(){
+			
+			$check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
+			if($check !== false) {
+				$notice =  "Ongi pilt - " . $check["mime"] . ".";
+				$uploadOk = 1;
+			} else {
+				$notice =  "Ei ole pilt!";
+				$uploadOk = 0;
+			}
+			return $uploadOk;
+			return $notice;
+		} // Kas on üldse pilt lõppeb
+		
+		//Kontrollime kas on juba olemas
+		private function checkIfExists($targetFile){
+			
+			if (file_exists($targetFile)) {
+				$notice =  "Pilt juba serveris!";
+				$uploadOk = 0;
+			}
+			return $notice;
+			return $uploadOk;			
+		} //Kontroll lõppeb
+		
+		// Check file size
+		private function checkFileSize(){
+		
+			if ($_FILES["fileToUpload"]["size"] > 2500000) {
+				$notice =  "Kahjuks on fail liiga suur!";
+				$uploadOk = 0;
+			}
+			return $notice;
+			return $uploadOk;
+		}// Check file size lõppeb
+		
+		private function checkFileFormat($imageFileType){
+			// Allow certain file formats
+			if($this->imageFileType != "jpg" && $this->imageFileType != "png" && $this->imageFileType != "jpeg"
+			&& $this->imageFileType != "gif" ) {
+				$notice =  "Kahjuks on lubatud ainult JPG, JPEG, PNG ja GIF failid!";
+				$uploadOk = 0;
+			}
+			return $notice;
+			return $uploadOk;			
+		} //Format check lõppeb
 		
 		private function createImageFromFile(){
 			
@@ -48,8 +108,12 @@
 				//loome uue "pildiobjekti" juba uute mõõtudega
 				$newW = round($imageW / $picSizeRatio, 0);
 				$newH = round($imageH / $picSizeRatio, 0);
-				$this->myNewImage = $this->setPicSize($this->myTempImage, $imageW, $imageH, $newW, $newH);				
-			}// kui liiga suur lõppeb
+				$this->myNewImage = $this->setPicSize($this->myTempImage, $imageW, $imageH, $newW, $newH); // kui liiga suur lõppeb			
+			} else {
+				$imageW = imagesx($this->myTempImage);
+				$imageH = imagesy($this->myTempImage);
+				$this->myNewImage = imagecreatetruecolor($imageW,$imageH);
+			}
 		} // resizeImage lõppeb
 		
 		private function setPicSize($myTempImage, $imageW, $imageH, $newW, $newH){
@@ -96,6 +160,17 @@
 			}
 			return $notice;
 		} //saveImage lõppeb
+		
+		public function saveImageOrig($targetFile){
+			
+			//kopeerin originaali
+			if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $targetFile)) {
+				$notice .=  "Originaalfail ". basename( $_FILES["fileToUpload"]["name"]). " laeti üles!";
+			} else {
+				$notice =  "Vabandame, originaalfaili ei õnnestunud üles laadida!";
+			}
+			return $notice;
+		} //originaali kopeerimine lõppeb
 		
 		
 	} //class lõppeb

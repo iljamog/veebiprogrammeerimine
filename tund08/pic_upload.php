@@ -43,40 +43,21 @@ if(isset($_GET["logout"])){
 	//$target_file = $pic_upload_dir_orig . basename($_FILES["fileToUpload"]["name"]);
 	//$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
 	$imageFileType = strtolower(pathinfo($_FILES["fileToUpload"]["name"],PATHINFO_EXTENSION));
-	//failinime jaoks ajatempel
-	$timeStamp = microtime(1) * 10000;
-	$fileName .= $timeStamp ."." .$imageFileType;
-	$targetFile = $pic_upload_dir_orig .$fileName;
+
+	
+	$myPic = new Picupload($_FILES["fileToUpload"]["tmp_name"], $imageFileType);
+	$myPic->createFileName($fileName);
+	unset($myPic);
 	
 	$uploadOk = 1;
 	
-	// Kas on üldse pilt
-		$check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
-		if($check !== false) {
-			$notice =  "Ongi pilt - " . $check["mime"] . ".";
-			$uploadOk = 1;
-		} else {
-			$notice =  "Ei ole pilt!";
-			$uploadOk = 0;
-		}
-	
-	// Check if file already exists
-	if (file_exists($targetFile)) {
-		$notice =  "Pilt juba serveris!";
-		$uploadOk = 0;
-	}
-	// Check file size
-	if ($_FILES["fileToUpload"]["size"] > 2500000) {
-		$notice =  "Kahjuks on fail liiga suur!";
-		$uploadOk = 0;
-	}
-	// Allow certain file formats
-	if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg"
-	&& $imageFileType != "gif" ) {
-		$notice =  "Kahjuks on lubatud ainult JPG, JPEG, PNG ja GIF failid!";
-		$uploadOk = 0;
-	}
-	
+	//kasutan classi
+	$myPic = new Picupload($_FILES["fileToUpload"]["tmp_name"], $imageFileType);
+	$myPic->checkIfImage();
+	$myPic->checkIfExists($targetFile);
+	$myPic->checkFileSize();
+	$myPic->checkFileFormat($imageFileType);
+	unset($myPic);
 	
 	// Check if $uploadOk is set to 0 by an error
 	if ($uploadOk == 0) {
@@ -86,25 +67,19 @@ if(isset($_GET["logout"])){
 		//kasutan classi
 		$myPic = new Picupload($_FILES["fileToUpload"]["tmp_name"], $imageFileType);
 		//suuruse muutmine
+		
 		$myPic->resizeImage($picMaxW, $picMaxH);
 		$myPic->addWaterMark($waterMark);
 		$myPic->saveImage($pic_upload_dir_W600 .$fileName);
+		$myPic->saveImageOrig($pic_upload_dir_orig .$fileName);
 		unset($myPic);
-		
-		//kopeerin originaali
-		if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $targetFile)) {
-			$notice .=  "Originaalfail ". basename( $_FILES["fileToUpload"]["name"]). " laeti üles!";
-		} else {
-			$notice =  "Vabandame, originaalfaili ei õnnestunud üles laadida!";
-		}
 		
 		//salvestan info andmebaasi
 		$notice .= addPicData($fileName, test_input($_POST["altText"]), $_POST["privacy"]);
 		
 	}
 	
-  }//nupuvajutuse kontroll
-  
+  }//nupuvajutuse kontroll  
   //pic upload lõppeb
   
   require("header.php");

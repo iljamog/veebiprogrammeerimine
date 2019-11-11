@@ -23,85 +23,59 @@ if(isset($_GET["logout"])){
   
   $userName = $_SESSION["userFirstname"] ." " .$_SESSION["userLastname"];
   
-  //$myTest = new Test(1337);
-  //echo "Salajane:".$myTest ->secretNumber;
-  //echo "avalik:".$myTest ->publicNumber;
-  //$myTest ->showValues();
-  //$myTest ->tellSecret();
-  //unset($myTest);
-  
   $notice = null;
-  $fileName = "vp_";
-  $picMaxW = 600;
-  $picMaxH = 400;
-  //pic upload algab
-	//$target_dir = "uploads/";
+  $fileSizeLimit = 2500000;
+  $maxPicW = 600;
+  $maxPicH = 400;
+  $fileNamePrefix = "vp_";
+  $waterMarkFile = "../vp_pics/vp_logo_w100_overlay.png";
+  $waterMarkLocation = mt_rand(1,4); //1- ülal vasakul, 2 - ülal paremal, 3 - all paremal, 4 - all vasakul, 5 - keskel
+  $waterMarkFromEdge = 10;
+  $thumbW = 100;
+  $thumbH = 100;
+  
+  $uploadOk = 1; 
   
   if(isset($_POST["submitPic"])){
-	//var_dump($_FILES["fileToUpload"]);
-	//$target_file = $pic_upload_dir_orig . basename($_FILES["fileToUpload"]["name"]);
-	//$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
-	$imageFileType = strtolower(pathinfo($_FILES["fileToUpload"]["name"],PATHINFO_EXTENSION));
-	//failinime jaoks ajatempel
-	$timeStamp = microtime(1) * 10000;
-	$fileName .= $timeStamp ."." .$imageFileType;
-	$targetFile = $pic_upload_dir_orig .$fileName;
-	
-	$uploadOk = 1;
-	
-	// Kas on üldse pilt
-		$check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
-		if($check !== false) {
-			$notice =  "Ongi pilt - " . $check["mime"] . ".";
-			$uploadOk = 1;
-		} else {
-			$notice =  "Ei ole pilt!";
+// Check if file already exists
+		/*if (file_exists($target_file)) {
+			echo "Sorry, file already exists.";
 			$uploadOk = 0;
-		}
-	
-	// Check if file already exists
-	if (file_exists($targetFile)) {
-		$notice =  "Pilt juba serveris!";
-		$uploadOk = 0;
-	}
-	// Check file size
-	if ($_FILES["fileToUpload"]["size"] > 2500000) {
-		$notice =  "Kahjuks on fail liiga suur!";
-		$uploadOk = 0;
-	}
-	// Allow certain file formats
-	if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg"
-	&& $imageFileType != "gif" ) {
-		$notice =  "Kahjuks on lubatud ainult JPG, JPEG, PNG ja GIF failid!";
-		$uploadOk = 0;
-	}
-	
-	
-	// Check if $uploadOk is set to 0 by an error
-	if ($uploadOk == 0) {
-		$notice =  "Kahjuks faili üles ei laeta!";
-	// if everything is ok, try to upload file
-	} else {
-		//kasutan classi
-		$myPic = new Picupload($_FILES["fileToUpload"]["tmp_name"], $imageFileType);
-		//suuruse muutmine
-		$myPic->resizeImage($picMaxW, $picMaxH);
-		$myPic->saveImage($pic_upload_dir_W600 .$fileName);
-		unset($myPic);
+		}*/
 		
-		//kopeerin originaali
-		if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $targetFile)) {
-			$notice .=  "Originaalfail ". basename( $_FILES["fileToUpload"]["name"]). " laeti üles!";
+		//kasutame klassi (saadame kogu info üleslaetava faili kohta ja faili mahu piiri
+		$myPic = new PicUpload($_FILES["fileToUpload"], $fileSizeLimit);
+		if($myPic->error == null){
+			//loome failinime
+			$myPic->createFileName($fileNamePrefix);
+			//teeme pildi väiksemaks
+			$myPic->resizeImage($maxPicW, $maxPicH);
+			//lisame vesimärgi
+			$myPic->addWatermark($waterMarkFile, $waterMarkLocation, $waterMarkFromEdge);
+			//kirjutame vähendatud pildi faili
+			$notice .= $myPic->savePicFile($pic_upload_dir_W600 .$myPic->fileName);
+			//thumbnail
+			$myPic->resizeImage($thumbW, $thumbH);
+			$myPic->savePicFile($pic_upload_dir_thumb .$myPic->fileName);
+			//salvestan originaali
+			$notice .= " " .$myPic->saveOriginal($pic_upload_dir_orig .$myPic->fileName);
+						
+			//salvestan info andmebaasi
+			$notice .= addPicData($myPic->fileName, test_input($_POST["altText"]), $_POST["privacy"]);
 		} else {
-			$notice =  "Vabandame, originaalfaili ei õnnestunud üles laadida!";
+			//1 - pole pildifail, 2 - liiga suur, pole lubatud tüüp
+			if($myPic->error == 1){
+				$notice = "Üleslaadimiseks valitud fail pole pilt!";
+			}
+			if($myPic->error == 2){
+				$notice = "Üleslaadimiseks valitud fail on liiga suure failimahuga!";
+			}
+			if($myPic->error == 3){
+				$notice = "Üleslaadimiseks valitud fail pole lubatud tüüpi (lubatakse vaid jpg, png ja gif)!";
+			}
 		}
-		
-		//salvestan info andmebaasi
-		$notice .= addPicData($fileName, test_input($_POST["altText"]), $_POST["privacy"]);
-		
-	}
-	
-  }//nupuvajutuse kontroll
+		unset($myPic);
+	}//kas nuppu klikiti
   
   //pic upload lõppeb
   
@@ -127,9 +101,9 @@ if(isset($_GET["logout"])){
 	  <br>
 	  <label>Privaatsus</label>
 	  <br>
-	  <input type="radio" name="privacy" value="1"><label>Avalik</label>&nbsp;
-	  <input type="radio" name="privacy" value="2"><label>Sisseloginud kasutajatele</label>&nbsp;
-	  <input type="radio" name="privacy" value="3" checked><label>Isiklik</label>
+	  <label><input type="radio" name="privacy" value="1">Avalik</label>&nbsp;
+	  <label><input type="radio" name="privacy" value="2">Sisseloginud kasutajatele</label>&nbsp;
+	  <label><input type="radio" name="privacy" value="3" checked>Isiklik</label>
       <br>
 	  <input name="submitPic" type="submit" value="Lae pilt üles!"><span><?php echo $notice; ?></span>
 	</form>
