@@ -1,13 +1,13 @@
 <?php
 	class PicUpload{
-	  private $picToUpload;
-	  private $timeStamp;
-	  public $error;
-	  public $imageFileType;
-	  public $fileName;
-	  private $fileSizeLimit;
-	  private $myTempImage;
-	  private $myNewImage;
+		private $picToUpload;
+		private $timeStamp;
+		public $error;
+		public $imageFileType;
+		public $fileName;
+		private $fileSizeLimit;
+		private $myTempImage;
+		private $myNewImage;
 	  
 	  function __construct($picToUpload, $fileSizeLimit){
 		  $this->error = null;//1 - pole pildifail, 2 - liiga suur, pole lubatud tüüp
@@ -18,11 +18,7 @@
 	  }
 	  
 	  function __destruct(){
-		if(isset($this->myTempImage)){
-			//isset($this->myTempImage)
-			//$this->error == null
-			imagedestroy($this->myTempImage);
-		}
+		imagedestroy($this->myTempImage);
 	  }
 	  
 	  private function checkImageForUpload(){
@@ -52,22 +48,21 @@
 		  
 		  //kui kõik sobib, teeme vajaliku pildiobjekti
 		  if($this->error == null){
-			  $this->myTempImage = $this->createImageFromFile($this->picToUpload["tmp_name"]);
+			  $this->createImageFromFile();
 		  }
 		  
 	  }//checkImageForUpload lõpp
 	  
-	  private function createImageFromFile($imageFile){
+	  private function createImageFromFile(){
 		if($this->imageFileType == "jpg" or $this->imageFileType == "jpeg"){
-			$image = imagecreatefromjpeg($imageFile);
+			$this->myTempImage = imagecreatefromjpeg($this->picToUpload["tmp_name"]);
 		}
 		if($this->imageFileType == "png"){
-			$image = imagecreatefrompng($imageFile);
+			$this->myTempImage = imagecreatefrompng($this->picToUpload["tmp_name"]);
 		}
 		if($this->imageFileType == "gif"){
-			$image = imagecreatefromgif($imageFile);
+			$this->myTempImage = imagecreatefromgif($this->picToUpload["tmp_name"]);
 		}
-		return $image;
 	  }//createImageFromFile lõppeb
 	  
 	  public function createFileName($prefix){
@@ -95,8 +90,7 @@
 			$this->myNewImage = $this->setPicSize($this->myTempImage, $imageW, $imageH, $imageNewW, $imageNewH);
 		} else {
 			//kui pole piisavalt suur, et vähendada, teeme originaalsuuruses
-			//$this->myNewImage = $this->myTempImage;
-			$this->myNewImage = $this->createImageFromFile($this->picToUpload["tmp_name"]);
+			$this->myNewImage = $this->createImageFromFile();
 		}
 	  }//resizeImage lõppeb
 	  

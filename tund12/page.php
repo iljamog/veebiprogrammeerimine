@@ -90,7 +90,8 @@ if ($today < $semesterStart){
         $photoFile = $photoDir .$allPhotos[$picNum];
         $randomSchoolImg = '<img src="' .$photoFile .'" alt="TLÜ Terra Õppehoone">';
 		
-		$randomImgHTML = getRandomImage();
+		
+		$randomImgHTML = latestPicture(1);
 		
 	  if(isset($_POST["login"])){
 		if (isset($_POST["email"]) and !empty($_POST["email"])){
